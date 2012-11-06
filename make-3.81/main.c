@@ -25,7 +25,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.  */
 #include "rule.h"
 #include "debug.h"
 #include "getopt.h"
-
+#include <time.h>
 #include <assert.h>
 #ifdef _AMIGA
 # include <dos/dos.h>
@@ -89,6 +89,7 @@ static void decode_env_switches PARAMS ((char *envar, unsigned int len));
 static void define_makeflags PARAMS ((int all, int makefile));
 static char *quote_for_env PARAMS ((char *out, char *in));
 static void initialize_global_hash_tables PARAMS ((void));
+static void initialize_global_vars(void);
 
 
 /* The structure that describes an accepted command switch.  */
@@ -132,6 +133,8 @@ struct stringlist
     unsigned int idx;	/* Index into above.  */
     unsigned int max;	/* Number of pointers allocated.  */
   };
+
+time_t start_time;
 
 
 /* The recognized command switches.  */
@@ -540,6 +543,12 @@ initialize_global_hash_tables (void)
   init_hash_files ();
   hash_init_directories ();
   hash_init_function_table ();
+}
+
+static void
+initialize_global_vars (void)
+{
+    start_time = time(&start_time);
 }
 
 static struct file *
@@ -1079,6 +1088,7 @@ main (int argc, char **argv, char **envp)
   user_access ();
 
   initialize_global_hash_tables ();
+  initialize_global_vars ();
 
   /* Figure out where we are.  */
 
@@ -1874,6 +1884,7 @@ main (int argc, char **argv, char **envp)
       define_makeflags (1, 1);
 
       rebuilding_makefiles = 1;
+      print_elapsed_time(&start_time, "PARSING TIME");
       status = update_goal_chain (read_makefiles);
       rebuilding_makefiles = 0;
 
